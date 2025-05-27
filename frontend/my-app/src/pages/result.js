@@ -11,7 +11,7 @@ export default function Result() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch distinct states from the backend
+
   useEffect(() => {
     const fetchState = async () => {
       try {
@@ -48,7 +48,7 @@ prediction.forEach((item) => {
   partyStats[party].totalProb += parseFloat(item.party_probabilities[party] || 0);
 });
 
-// Prepare data for chart and summary (Top 5 parties)
+
 let chartData = Object.keys(partyStats).map((party) => ({
   name: partyStats[party].partyname || party,
   seats: partyStats[party].seats,
@@ -63,7 +63,7 @@ chartData = chartData.sort((a, b) => b.seats - a.seats).slice(0, 5);
         🗳️ Election Prediction Dashboard
       </h2>
 
-      {/* Error Message */}
+      
       {error && (
         <div className="text-red-600 bg-red-100 p-3 rounded mb-4 text-center font-semibold shadow">
           {error}

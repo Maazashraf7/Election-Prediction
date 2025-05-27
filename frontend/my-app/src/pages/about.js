@@ -1,7 +1,7 @@
 import React from "react";
 import election2 from '../assets/election2.jpg';
 import election3 from '../assets/election3.jpg';
-import presentation1 from '../assets/presentation2.jpeg'; // Make sure this image exists in src/assets/
+import presentation1 from '../assets/presentation2.jpeg'; 
 
 export default function About() {
   return (

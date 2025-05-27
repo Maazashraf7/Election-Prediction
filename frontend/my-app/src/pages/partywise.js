@@ -10,7 +10,6 @@ function Partywise() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Fetch years on mount
   useEffect(() => {
     fetchYears()
       .then(setYears)
@@ -44,7 +43,7 @@ function Partywise() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 bg-white rounded shadow mt-8">
-      {/* Back Arrow */}
+      
       <button
         className="flex items-center text-[#FF9933] hover:text-[#138808] font-semibold mb-4"
         onClick={() => navigate("/")}
