@@ -6,10 +6,14 @@ import Result from "./pages/result";  // Result page in the pages folder
 import About from "./pages/about";  // About page in the pages folder
 import './index.css';  // Make sure Tailwind's styles are applied
 import Statewise from "./pages/statewise";  // Statewise page in the pages folder
+import DataViewer from "./pages/dataviewer";
+
+import Partywise from "./pages/partywise";
+import TweetSentiment from "./pages/tweetSentiments";
 function App() {
   return (
     <Router>
-     <div className="flex flex-col min-h-screen bg-white text-white">
+     <div className="flex flex-col min-h-screen bg-white text-gray-800">
 
         {/* Navbar */}
         <Navbar />
@@ -21,6 +25,10 @@ function App() {
             <Route path="/statewise" element={<Statewise />} />
             <Route path="/result" element={<Result />} />
             <Route path="/about" element={<About />} />
+            <Route path="/dataviewer" element={<DataViewer />} />
+            
+            <Route path="/partywise" element={<Partywise />} />
+            <Route path="/tweetsentiment" element={<TweetSentiment />} />
           </Routes>
         </main>
 

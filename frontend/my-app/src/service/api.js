@@ -59,3 +59,24 @@ export const fetchPartyVotesByState = (state) => {
 	  throw error;
 	}
   };
+  // ...existing code...
+// ...existing code...
+
+export const fetchState = async (year) => {
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/state/${year}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch state");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching states:", error);
+    throw error;
+  }
+};
+export const fetchTweets = async (query) => {
+  const res = await fetch(`http://127.0.0.1:5000/tweets?query=${encodeURIComponent(query)}`);
+  if (!res.ok) throw new Error("Failed to fetch tweets");
+  return res.json();
+};
+// ...existing code...

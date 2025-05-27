@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { useNavigate } from "react-router-dom"; // <-- Add this import
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -20,16 +21,15 @@ function Statewise() {
   const [years, setYears] = useState([]); // State for available years
   const [partyVotesData, setPartyVotesData] = useState(null); // State for party vote percentage data
   const [error, setError] = useState(""); // State for error messages
+  const navigate = useNavigate(); // <-- Add this line
 
   // Fetch available years when the component mounts
   useEffect(() => {
     fetchYears()
       .then((data) => {
-        console.log("Fetched Years:", data); // Debugging log
         setYears(data);
       })
       .catch((err) => {
-        console.error("Error fetching years:", err);
         setError("Could not load available years.");
       });
   }, []);
@@ -39,11 +39,9 @@ function Statewise() {
     if (!year) return;
     fetchStates(year)
       .then((data) => {
-        console.log("Fetched States:", data); // Debugging log
         setStates(data);
       })
       .catch((err) => {
-        console.error("Error fetching states:", err);
         setError("Could not load available states.");
       });
   }, [year]);
@@ -52,11 +50,9 @@ function Statewise() {
   const loadPartyVotesData = () => {
     fetchStatePartyVotes(state, year)
       .then((data) => {
-        console.log("Fetched Party Votes Data:", data); // Debugging log
         setPartyVotesData(data);
       })
       .catch((err) => {
-        console.error(err);
         setError("Could not load party vote percentage data.");
       });
   };
@@ -85,19 +81,16 @@ function Statewise() {
     };
   };
 
-  // Generate color scale for the map
-  const getColorForState = (stateName) => {
-    if (!partyVotesData || partyVotesData.length === 0) return "#EEE"; // Default color
-    const stateData = partyVotesData.find((item) => item.partyname === stateName);
-    if (!stateData) return "#EEE"; // Default color if no data for the state
-    const percentage = stateData.vote_percentage;
-    if (percentage > 50) return "#FF5733"; // High percentage (red)
-    if (percentage > 30) return "#FFC300"; // Medium percentage (yellow)
-    return "#DAF7A6"; // Low percentage (green)
-  };
-
   return (
     <div className="space-y-6 p-4">
+      {/* Back Arrow */}
+      <button
+        className="flex items-center text-[#FF9933] hover:text-[#138808] font-semibold mb-2"
+        onClick={() => navigate("/")}
+      >
+        <span className="mr-2 text-2xl">&#8592;</span> Back to Home
+      </button>
+
       <h1 className="text-2xl font-bold text-center text-black">Statewise Data Viewer</h1>
 
       {/* Year Selector */}
@@ -127,10 +120,6 @@ function Statewise() {
           <Pie data={generateChartData()} />
         </div>
       )}
-
-      {/* Map Visualization */}
-      
-
     </div>
   );
 }

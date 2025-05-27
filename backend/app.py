@@ -1,14 +1,79 @@
-from flask import Flask, jsonify
+from flask import Flask,request, jsonify
 from flask_cors import CORS
 import pandas as pd
 import joblib
-from flask import Flask, jsonify, request
+import tweepy
+from textblob import TextBlob
+import os
+import time
 app = Flask(__name__)
 CORS(app)
-
-# Load the CSV file once when the app starts
+# Add this near the top, after your imports
 data = pd.read_csv('indian-national-level-election[cleaned].csv')
+# Twitter API credentials (replace with your own)
+BEARER_TOKEN = "AAAAAAAAAAAAAAAAAAAAAHZawgEAAAAAg%2BSpqef24CDoT8w2QvtCB4GhyxE%3D1STcWyTfzULqBW7CjySw5Ysuy7CBQLGtnB8u0eNew5FqNqUlmR"
+tweet_cache = {}  # {query: {"data": [...], "timestamp": ...}}
+client = tweepy.Client(bearer_token=BEARER_TOKEN)
 
+def analyze_sentiment(text):
+    analysis = TextBlob(text)
+    if analysis.sentiment.polarity > 0.1:
+        return "Positive"
+    elif analysis.sentiment.polarity < -0.1:
+        return "Negative"
+    else:
+        return "Neutral"
+
+@app.route('/tweets', methods=['GET'])
+def get_tweets():
+    query = request.args.get('query', '').strip().lower()
+    if not query:
+        return jsonify([])
+
+    now = time.time()
+    # Check cache: if data exists and is less than 15 minutes old, return it
+    if query in tweet_cache and now - tweet_cache[query]["timestamp"] < 900:
+        return jsonify(tweet_cache[query]["data"])
+
+    try:
+        tweets = client.search_recent_tweets(query=query, max_results=20, tweet_fields=["text"])
+        tweet_list = []
+        for tweet in tweets.data or []:
+            sentiment = analyze_sentiment(tweet.text)
+            tweet_list.append({
+                "text": tweet.text,
+                "sentiment": sentiment
+            })
+        # Save to cache
+        tweet_cache[query] = {"data": tweet_list, "timestamp": now}
+        return jsonify(tweet_list)
+    except tweepy.TooManyRequests as e:
+        print("Rate limit exceeded:", e)
+        # Return cached data if available, else mock data
+        if query in tweet_cache:
+            return jsonify(tweet_cache[query]["data"])
+        mock_tweets = [
+            {"text": "Great work by BJP!", "sentiment": "Positive"},
+            {"text": "Congress is facing challenges.", "sentiment": "Neutral"},
+            {"text": "I dislike the corruption in politics.", "sentiment": "Negative"}
+        ]
+        return jsonify(mock_tweets), 200
+    except Exception as e:
+        print(e)
+        # Return cached data if available, else mock data
+        if query in tweet_cache:
+            return jsonify(tweet_cache[query]["data"])
+        mock_tweets = [
+            {"text": "Great work by BJP!", "sentiment": "Positive"},
+            {"text": "Congress is facing challenges.", "sentiment": "Neutral"},
+            {"text": "I dislike the corruption in politics.", "sentiment": "Negative"}
+        ]
+        return jsonify(mock_tweets), 200
+    
+
+# if __name__ == "__main__":
+#     app.run(debug=True)
+# ...rest of your code...
 @app.route('/years', methods=['GET'])
 def get_years():
     try:
@@ -33,7 +98,7 @@ def get_chart(year):
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+ 
 @app.route('/party-votes/<int:year>', methods=['GET'])
 def get_party_votes(year):
     try:
@@ -81,6 +146,7 @@ def get_state_party_votes(state, year):
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
 @app.route('/states/<int:year>', methods=['GET'])
 def get_states(year):
     try:
@@ -93,14 +159,14 @@ def get_states(year):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# @app.route('/states', methods=['GET'])
-# def get_states():
-#     try:
-#         # Get unique states from the dataset
-#         unique_states = data['st_name'].unique().tolist()
-#         return jsonify(unique_states)
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
+@app.route('/state', methods=['GET'])
+def get_state():
+    try:
+        # Get unique states from the dataset
+        unique_states = data['st_name'].unique().tolist()
+        return jsonify(unique_states)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     
 @app.route('/state-data/<state>', methods=['GET'])
 def get_state_data(state):
@@ -172,5 +238,7 @@ def predict_state():
     except Exception as e:
         print("Error occurred:", str(e))  # Debugging log
         return jsonify({"error": str(e)}), 500
+    
+    
 if __name__ == '__main__':
     app.run(debug=True)
